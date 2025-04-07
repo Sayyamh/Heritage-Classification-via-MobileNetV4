@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classification Result</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(to bottom right, #a64d2b, #d4a190); /* Warm brown gradient */
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover; /* Cover the entire screen */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+            height: 100%;
+        }
+
+        header {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #3e2723;
+            text-align: center;
+            padding: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 700px;
+            position: relative; /* Position relative to keep it above the background */
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.85); /* Lightened header */
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            overflow: hidden;
+            position: relative; /* Keep content above the background */
+            z-index: 1;
+            background: #fff5e1; /* Soft cream background for content box */
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .result h2 {
+            font-size: 24px;
+            color: #6d4c41;
+            margin: 20px 0 10px;
+            font-weight: bold;
+        }
+
+        .result p {
+            font-size: 18px;
+            color: #555;
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Add hover effect to the container */
+        .container:hover {
+            background: #f5e1c1; /* Slightly darker background on hover */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body> 
+    <header>
+        Classification Result
+    </header>
+    <div class="container">
+        <img src="{{ uploaded_image }}" alt="Uploaded Image">
+        <div class="result">
+            <h2>Predicted Class: {{ predicted_class }}</h2>
+        </div>
+    </div>
+</body>
+</html>
