@@ -2,7 +2,6 @@ from flask import Flask, request, render_template
 import torch
 from torchvision import transforms
 from PIL import Image
-from torchvision import datasets
 import timm
 import requests
 from bs4 import BeautifulSoup
@@ -31,22 +30,37 @@ preprocess = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-# Load dataset to get class labels
-data_dir = "C:/Users/Dell/Desktop/ML_CP/DATASET/IHDS_dataset"
-train_dataset = datasets.ImageFolder(root=f"{data_dir}/train", transform=preprocess)
-class_labels = train_dataset.classes  # Extract class labels
+# Hardcoded class labels (make sure order matches training)
+class_labels = [
+    'ibrahim roza', 'AMRUTESHWARA TEMPLE, ANNIGERI', 'Brahmeshwar temple,kikkeri',
+    'KAMAL BASTI, BELAGAVI', 'Kiatabeshwar temple, Kubatur', 'Kumaraswamy temple,Sandur,Hospet',
+    'Mahadev Temple Tambdisurla Goa', 'Someshwar temple kaginele', 'Trikuteshwara temple, Gadag',
+    'chennakeshwara temple. belur', 'Ambigera gudi complex,Aihole', 'Billeshwar Temple Hanagal',
+    'Channakeshwa_temple_aralguppe', 'Digambar Basti, Belgum', 'Doddabasappa temple,Gadag',
+    'GALAGANATH TEMPLE HAVERI', 'Goudaragudi temple, aihole', 'HAZARARAMA_TEMPLE_HAMPI',
+    'HOYSALESHWAR TEMPLE, HALEBEEDU', 'Jain_Basadi_Bilagi', 'KAADASIDHESHWAR TEMPLE , PATTADAKAL',
+    'KAPPECHENIKESHWARA_TEMPLE_HASSAN', 'KEDARESHWARA_TEMPLE_HASSAN', 'KOTILINGESHWARA, KOTIPUR, HANAGAL',
+    'Keshava Temple Somanathapur,Mysore', 'Koravangala Temple,Hassan', 'Kunti Temple Complex, Aihole',
+    'LAKSHMIKANT TEMPLE,NANJANGUDU,MYSORE', 'LOTUS MAHAL, HAMPI', 'Lady_of_mount_Goa',
+    'MADHUKESHWARA TEMPLE, BANAVASI', 'MOOLE SHANKARESHWARA TEMPLE,TURUVEKERE', 'Mallikarjuna Temple,Mandya',
+    'NAGARESHWARA_TEMPLE,BANKAPUR', 'PAPANATH TEMPLE_PATTADAKAL', 'Rameshwar_temple',
+    'SHIVA BASADI(SHRAVANBELAGOLA)', 'Sangameshwar_Pattadakal', 'Someshwara Temple,Lakshmeshwara',
+    'TARAKESHWRARA_TEMPLE_HANGAL', 'TWIN TOWER TEMPLE SUDI', 'Veerabhadreshwara temple,Hangal',
+    'agra_fort', 'aihole', 'hampi monolithic bull', 'hampi_chariot',
+    'kadambeshwara temple Rattihalli,Haveri', 'mahabodhi_temple', 'mahadeva temple ,ittagi', 'safa masjid _belgaum'
+]
 
 @app.route('/')
 def home():
     return render_template("index.html")  # Ensure index.html exists in the templates folder
 
 def get_heritage_info(site_name):
-    """Fetch a brief description of the heritage site from the web."""
+    """Fetch a brief description of the heritage site from Wikipedia."""
     try:
         search_url = f"https://en.wikipedia.org/wiki/{site_name.replace(' ', '_')}"
         response = requests.get(search_url)
         soup = BeautifulSoup(response.text, 'html.parser')
-        paragraph = soup.find('p')  # Get the first paragraph
+        paragraph = soup.find('p')
         if paragraph:
             return paragraph.get_text(strip=True)
         else:
@@ -61,34 +75,33 @@ def predict():
     file = request.files['file']
 
     try:
-        # Save the uploaded image to the upload folder
+        # Save the uploaded image
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(image_path)
 
-        # Open and preprocess the image
+        # Preprocess image
         image = Image.open(file.stream).convert('RGB')
-        image = preprocess(image).unsqueeze(0).to(device)  # Send image to the same device as the model
+        image = preprocess(image).unsqueeze(0).to(device)
 
         # Predict
         with torch.no_grad():
             output = model(image)
-            probabilities = torch.nn.functional.softmax(output[0], dim=0)  # Compute class probabilities
+            probabilities = torch.nn.functional.softmax(output[0], dim=0)
             _, predicted = torch.max(output, 1)
             predicted_class = class_labels[predicted.item()]
 
-        # Sort class-wise probabilities in descending order
+        # Sorted class-wise probabilities
         sorted_probabilities = sorted(
             [(class_labels[i], float(probabilities[i])) for i in range(len(class_labels))],
             key=lambda x: x[1],
             reverse=True
         )
 
-        # Print sorted probabilities to the terminal
         print("\nClass-Wise Probabilities (Descending Order):")
         for label, prob in sorted_probabilities:
             print(f"{label}: {prob:.4f}")
 
-        # Get related heritage site information
+        # Get heritage info
         heritage_info = get_heritage_info(predicted_class)
 
         return render_template(
@@ -97,6 +110,7 @@ def predict():
             predicted_class=predicted_class,
             heritage_info=heritage_info
         )
+
     except Exception as e:
         print(f"Error during prediction: {e}")
         return f"Error during prediction: {str(e)}", 500
